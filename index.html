@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rekap Tagihan PDAM, Laba &amp; Talangan</title>
+<style>
+    *, *::before, *::after {
+        box-sizing: border-box;
+    }
+    body {
+        margin: 0;
+        padding: 8px;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        color: #1e293b;
+        background-color: #f1f5f9;
+        font-size: 12px;
+        line-height: 1.3;
+    }
+    .container {
+        max-width: 100%;
+        margin: 0 auto;
+        background: #ffffff;
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgb(0 0 0 / 0.1);
+    }
+    .header {
+        background-color: #0284c7;
+        color: #ffffff;
+        margin: -10px -10px 10px -10px;
+        padding: 12px;
+        text-align: center;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
+    .header h1 {
+        margin: 0;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .header p {
+        margin: 3px 0 0 0;
+        font-size: 10px;
+        color: #e0f2fe;
+    }
+    .save-badge {
+        display: inline-block;
+        margin-top: 4px;
+        background-color: rgba(255, 255, 255, 0.2);
+        padding: 2px 6px;
+        border-radius: 10px;
+        font-size: 9px;
+        color: #ffffff;
+    }
+    .meta-bar {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        background-color: #f8fafc;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        padding: 8px;
+        margin-bottom: 8px;
+        font-size: 11px;
+        font-weight: bold;
+        color: #334155;
+        gap: 6px;
+        text-align: center;
+    }
+    .meta-bar input {
+        width: 100%;
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        padding: 3px;
+        font-size: 11px;
+        font-weight: bold;
+        color: #0284c7;
+        text-align: center;
+        outline: none;
+    }
+    .section-title {
+        font-size: 12px;
+        color: #0284c7;
+        margin: 10px 0 6px 0;
+        font-weight: bold;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .btn-mini {
+        background-color: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        color: #334155;
+        padding: 3px 6px;
+        font-size: 10px;
+        font-weight: bold;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .btn-mini-primary {
+        background-color: #0284c7;
+        border-color: #0284c7;
+        color: #ffffff;
+    }
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: #ffffff;
+        border: 1px solid #cbd5e1;
+        margin-bottom: 8px;
+    }
+    th {
+        background-color: #e2e8f0;
+        color: #1e293b;
+        font-size: 10px;
+        font-weight: bold;
+        text-transform: uppercase;
+        padding: 6px 3px;
+        border: 1px solid #cbd5e1;
+        text-align: center;
+    }
+    td {
+        padding: 6px 4px;
+        border: 1px solid #cbd5e1;
+        font-size: 11px;
+        vertical-align: middle;
+    }
+    tr:nth-child(even) { background-color: #f8fafc; }
+    tr.row-bayar td { background-color: #f0fdf4 !important; }
+    tr.row-talang td { background-color: #fefce8 !important; }
+    tr.row-editing td { background-color: #eff6ff !important; }
+
+    .text-center { text-align: center; }
+    .text-right { text-align: right; }
+    .font-bold { font-weight: bold; }
+    
+    .checkbox-custom, .checkbox-talang {
+        width: 15px;
+        height: 15px;
+        cursor: pointer;
+        vertical-align: middle;
+    }
+    .checkbox-custom { accent-color: #16a34a; }
+    .checkbox-talang { accent-color: #ca8a04; }
+
+    .btn-icon {
+        background: #ffffff;
+        border: 1px solid #cbd5e1;
+        border-radius: 3px;
+        padding: 2px 5px;
+        font-size: 10px;
+        cursor: pointer;
+    }
+    .btn-save-row { background: #0284c7; color: #fff; border-color: #0284c7; }
+    .btn-del-row { background: #fee2e2; color: #991b1b; border-color: #fecdd3; }
+
+    .edit-input {
+        width: 100%;
+        padding: 3px;
+        font-size: 11px;
+        border: 1px solid #0284c7;
+        border-radius: 3px;
+    }
+    .edit-input-num {
+        width: 100%;
+        padding: 3px;
+        font-size: 11px;
+        border: 1px solid #0284c7;
+        border-radius: 3px;
+        text-align: right;
+    }
+    .clickable-tag {
+        cursor: pointer;
+        color: #0369a1;
+        font-weight: bold;
+    }
+
+    .summary-card {
+        background-color: #ffffff;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        padding: 8px 10px;
+        margin-bottom: 8px;
+        font-size: 11px;
+    }
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 3px 0;
+        border-bottom: 1px dashed #e2e8f0;
+    }
+    .summary-row:last-child { border-bottom: none; }
+    
+    .action-bar {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 6px;
+    }
+    .btn-tool {
+        flex: 1;
+        padding: 8px 4px;
+        font-size: 11px;
+        font-weight: bold;
+        border-radius: 4px;
+        border: 1px solid #cbd5e1;
+        cursor: pointer;
+        background-color: #f8fafc;
+        color: #334155;
+        text-align: center;
+    }
+    .btn-wa { background-color: #16a34a; color: #ffffff; border-color: #16a34a; }
+    .btn-pdam { background-color: #0284c7; color: #ffffff; border-color: #0284c7; }
+    .btn-backup { background-color: #475569; color: #ffffff; border-color: #475569; }
+    .btn-reset { background-color: #fff1f2; color: #be123c; border-color: #fecdd3; }
+
+    @media print {
+        body { padding: 0; background: #fff; }
+        .container { box-shadow: none; max-width: 100%; }
+        .action-bar, .save-badge, .col-aksi, .btn-mini { display: none !important; }
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>REKAP TAGIHAN PDAM &amp; TALANGAN</h1>
+        <p>Kelola Tagihan, Laba, Talang, &amp; Backup Data</p>
+        <div class="save-badge" id="save-indicator">✓ Tersimpan Otomatis</div>
+    </div>
+
+    <div class="meta-bar">
+        <div>Bulan:<br><input type="text" id="input-bulan" placeholder="November" oninput="saveMeta()"></div>
+        <div>Tahun:<br><input type="text" id="input-tahun" placeholder="2026" oninput="saveMeta()"></div>
+    </div>
+
+    <div class="section-title">
+        <span id="title-pelanggan">Pelanggan (32 Orang)</span>
+        <div style="display: flex; gap: 4px;">
+            <button class="btn-mini" onclick="document.getElementById('file-restore').click()">📥 Restore</button>
+            <input type="file" id="file-restore" style="display:none" accept=".json" onchange="restoreData(event)">
+            <button class="btn-mini btn-mini-primary" onclick="addCustomer()">+ Tambah</button>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 5%;">NO</th>
+                <th style="width: 12%;">METER</th>
+                <th style="width: 22%;">NAMA</th>
+                <th style="width: 15%;">TAGIHAN</th>
+                <th style="width: 15%;">TOTAL</th>
+                <th style="width: 11%;">LABA</th>
+                <th style="width: 5%;">✓</th>
+                <th style="width: 5%;">T</th>
+                <th style="width: 0%;" class="col-aksi"></th>
+            </tr>
+        </thead>
+        <tbody id="customer-tbody">
+            <!-- Diisi JavaScript -->
+        </tbody>
+        <tfoot>
+            <tr style="background-color: #e2e8f0; font-weight: bold;">
+                <td colspan="3" class="text-right" style="padding-right: 4px;">TOTAL:</td>
+                <td class="text-right" id="tot-murni" style="color: #0284c7;">0</td>
+                <td class="text-right" id="tot-bayar" style="color: #0f766e;">0</td>
+                <td class="text-right" id="tot-laba" style="color: #16a34a;">0</td>
+                <td colspan="3" class="text-center" id="count-lunas" style="font-size: 9.5px;">0/32</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="summary-card">
+        <div style="font-weight: bold; color: #0284c7; margin-bottom: 4px; border-bottom: 1px solid #e2e8f0; padding-bottom: 3px; display: flex; justify-content: space-between;">
+            <span>Rekap Keuangan &amp; Talangan</span>
+            <span id="info-status-lunas" style="color: #16a34a; font-weight: normal;">Menunggu...</span>
+        </div>
+        <div class="summary-row">
+            <span>1. Total Setor Murni ke Loket</span>
+            <span id="rekap-loket" style="font-weight: bold; color: #0284c7;">Rp 0</span>
+        </div>
+        <div class="summary-row">
+            <span>2. Total Uang Masuk di Tangan</span>
+            <span id="rekap-masuk" style="font-weight: bold;">Rp 0</span>
+        </div>
+        <div class="summary-row">
+            <span>3. Total Ditalangi (Belum Diganti)</span>
+            <span id="rekap-talang" style="font-weight: bold; color: #ca8a04;">Rp 0</span>
+        </div>
+        <div class="summary-row">
+            <span>4. Total Belum Lunas Lainnya</span>
+            <span id="rekap-belum" style="font-weight: bold; color: #64748b;">Rp 0</span>
+        </div>
+        <div class="summary-row" style="border-top: 1px solid #cbd5e1; margin-top: 3px; padding-top: 4px;">
+            <span style="font-weight: bold; color: #16a34a;">5. Total Keuntungan Laba Anda</span>
+            <span id="rekap-laba" style="font-weight: bold; color: #16a34a; font-size: 12px;">Rp 0</span>
+        </div>
+    </div>
+
+    <div class="action-bar">
+        <button class="btn-tool btn-wa" onclick="copyRekapWA()">📋 Salin WA</button>
+        <button class="btn-tool btn-pdam" onclick="copyRekapPDAM()">📋 Salin Petugas</button>
+    </div>
+    <div class="action-bar">
+        <button class="btn-tool btn-backup" onclick="backupData()">💾 Backup Data</button>
+        <button class="btn-tool" onclick="window.print()">🖨️ Cetak</button>
+        <button class="btn-tool btn-reset" onclick="resetBulanBaru()">🔄 Reset</button>
+    </div>
+</div>
+
+<script>
+    const STORAGE_KEY = "rekap_pdam_final_v3";
+
+    const defaultCustomers = [
+        { id: 1, meter: "142", name: "AMSIA", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 2, meter: "548", name: "ANGWAR", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 3, meter: "140", name: "ARJONO", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 4, meter: "459", name: "ASMAWI", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 5, meter: "698", name: "B SYAMYARI SANI", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 6, meter: "6", name: "BADRI", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 7, meter: "296", name: "BAHRUL", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 8, meter: "135", name: "BAKRI", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 9, meter: "227", name: "BUYAMI", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 10, meter: "576", name: "DURAHMAN P LIKAL", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 11, meter: "528", name: "FADILLAH", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 12, meter: "1352", name: "IFDATUL HASANAH", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 13, meter: "1335", name: "JUMADIN", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 14, meter: "1112", name: "MARYATI B RUSTIA", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 15, meter: "498", name: "MINADIN", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 16, meter: "141", name: "MISNATOLAK", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 17, meter: "875", name: "MISWANI", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 18, meter: "297", name: "MOCH SUNDARI", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 19, meter: "134", name: "MUHLIS", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 20, meter: "697", name: "MUISEH", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 21, meter: "58", name: "RISTA FAUZI", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 22, meter: "74", name: "ROHANA", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 23, meter: "1349", name: "SAMSUL ARIFIN", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 24, meter: "228", name: "SAODA", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 25, meter: "247", name: "SISYANTO", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 26, meter: "111", name: "SITTIMA", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 27, meter: "135", name: "SRI WAHYUNI", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 28, meter: "85", name: "SRUJI P MUIS", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 29, meter: "427", name: "SUMYATI LAMPARAN", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 30, meter: "567", name: "SUYATI B JUTI", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 31, meter: "731", name: "TOTOK", murni: 0, total: 0, bayar: false, talang: false },
+        { id: 32, meter: "1112", name: "USWATUN HASANAH", murni: 0, total: 0, bayar: false, talang: false }
+    ];
+
+    let customers = JSON.parse(JSON.stringify(defaultCustomers));
+    let editingId = null;
+
+    function formatRupiahShort(num) {
+        if (!num) return "0";
+        return num.toLocaleString("id-ID");
+    }
+    function formatRupiah(num) {
+        if (!num) return "Rp 0";
+        return "Rp " + num.toLocaleString("id-ID");
+    }
+
+    function loadData() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                if (parsed.customers) customers = parsed.customers;
+                if (parsed.bulan) document.getElementById("input-bulan").value = parsed.bulan;
+                if (parsed.tahun) document.getElementById("input-tahun").value = parsed.tahun;
+            } catch (e) {}
+        }
+    }
+
+    function saveData() {
+        const data = {
+            customers: customers,
+            bulan: document.getElementById("input-bulan").value,
+            tahun: document.getElementById("input-tahun").value
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        document.getElementById("save-indicator").innerText = "✓ Tersimpan";
+    }
+
+    function saveMeta() { saveData(); }
+    function startEdit(id) { editingId = id; renderTable(); }
+    
+    function saveRowEdit(id) {
+        const mInput = document.getElementById(`edit-meter-${id}`);
+        const nInput = document.getElementById(`edit-name-${id}`);
+        const murniInput = document.getElementById(`edit-murni-${id}`);
+        const tInput = document.getElementById(`edit-total-${id}`);
+        const c = customers.find(item => item.id === id);
+        if (c && mInput && nInput && murniInput && tInput) {
+            c.meter = mInput.value.trim();
+            c.name = nInput.value.trim();
+            c.murni = parseInt(murniInput.value) || 0;
+            c.total = parseInt(tInput.value) || 0;
+        }
+        editingId = null;
+        saveData();
+        renderTable();
+    }
+
+    function deleteCustomer(id) {
+        const c = customers.find(item => item.id === id);
+        if (c && confirm(`Hapus pelanggan "${c.name}"?`)) {
+            customers = customers.filter(item => item.id !== id);
+            editingId = null;
+            saveData();
+            renderTable();
+        }
+    }
+
+    function addCustomer() {
+        const newId = customers.length > 0 ? Math.max(...customers.map(c => c.id)) + 1 : 1;
+        customers.push({ id: newId, meter: "", name: "Baru", murni: 0, total: 0, bayar: false, talang: false });
+        editingId = newId;
+        saveData();
+        renderTable();
+    }
+
+    function clearZero(input) {
+        if (input.value === "0") input.value = "";
+    }
+    function restoreZero(input) {
+        if (input.value.trim() === "") input.value = "0";
+    }
+
+    function renderTable() {
+        customers.sort((a, b) => a.name.localeCompare(b.name));
+
+        const tbody = document.getElementById("customer-tbody");
+        tbody.innerHTML = "";
+        document.getElementById("title-pelanggan").innerText = `Pelanggan (${customers.length} Orang)`;
+
+        let totalMasuk = 0, totalBelum = 0, totalTalangNominal = 0, totalLoket = 0, totalLaba = 0, countLunas = 0;
+        let totalMurniAll = 0, totalBayarAll = 0, totalLabaAll = 0;
+
+        customers.forEach((c, idx) => {
+            let labaRow = (c.total > 0 && c.murni > 0) ? c.total - c.murni : 0;
+            
+            totalMurniAll += c.murni;
+            totalBayarAll += c.total;
+            totalLabaAll += labaRow;
+
+            if (c.bayar) {
+                totalMasuk += c.total;
+                totalLoket += c.murni;
+                totalLaba += labaRow;
+                countLunas++;
+            } else if (c.talang) {
+                totalTalangNominal += c.total;
+                totalLoket += c.murni; // Dianggap sudah disetor pakai uang talangan Anda
+                totalLaba += labaRow;
+            } else {
+                totalBelum += c.total;
+            }
+
+            const isEditing = (editingId === c.id);
+            const tr = document.createElement("tr");
+            if (isEditing) tr.className = "row-editing";
+            else if (c.bayar) tr.className = "row-bayar";
+            else if (c.talang) tr.className = "row-talang";
+
+            if (isEditing) {
+                tr.innerHTML = `
+                    <td class="text-center">${idx + 1}</td>
+                    <td><input type="text" id="edit-meter-${c.id}" class="edit-input" value="${c.meter}"></td>
+                    <td><input type="text" id="edit-name-${c.id}" class="edit-input" value="${c.name}"></td>
+                    <td><input type="number" id="edit-murni-${c.id}" class="edit-input-num" value="${c.murni}" onfocus="clearZero(this)" onblur="restoreZero(this)" step="1000"></td>
+                    <td><input type="number" id="edit-total-${c.id}" class="edit-input-num" value="${c.total}" onfocus="clearZero(this)" onblur="restoreZero(this)" step="1000"></td>
+                    <td class="text-right" style="color:#16a34a; font-weight:bold;">${formatRupiahShort(labaRow)}</td>
+                    <td class="text-center"><input type="checkbox" class="checkbox-custom" ${c.bayar ? 'checked' : ''} onchange="toggleBayar(${c.id}, this.checked)"></td>
+                    <td class="text-center"><input type="checkbox" class="checkbox-talang" ${c.talang ? 'checked' : ''} onchange="toggleTalang(${c.id}, this.checked)"></td>
+                    <td class="text-center col-aksi" style="white-space: nowrap;">
+                        <button class="btn-icon btn-save-row" onclick="saveRowEdit(${c.id})">✓</button>
+                        <button class="btn-icon btn-del-row" onclick="deleteCustomer(${c.id})">🗑️</button>
+                    </td>
+                `;
+            } else {
+                tr.innerHTML = `
+                    <td class="text-center">${idx + 1}</td>
+                    <td class="text-center font-bold" style="font-size:11px;">${c.meter || '-'}</td>
+                    <td class="font-bold clickable-tag" onclick="startEdit(${c.id})" title="${c.name}">${c.name}</td>
+                    <td class="text-right font-bold" style="color: #0284c7;" onclick="startEdit(${c.id})">${formatRupiahShort(c.murni)}</td>
+                    <td class="text-right font-bold" style="color: #0f766e;" onclick="startEdit(${c.id})">${formatRupiahShort(c.total)}</td>
+                    <td class="text-right font-bold" style="color: #16a34a;" onclick="startEdit(${c.id})">${formatRupiahShort(labaRow)}</td>
+                    <td class="text-center">
+                        <input type="checkbox" class="checkbox-custom" ${c.bayar ? 'checked' : ''} onchange="toggleBayar(${c.id}, this.checked)">
+                    </td>
+                    <td class="text-center">
+                        <input type="checkbox" class="checkbox-talang" ${c.talang ? 'checked' : ''} onchange="toggleTalang(${c.id}, this.checked)">
+                    </td>
+                    <td class="text-center col-aksi">
+                        <button class="btn-icon" onclick="startEdit(${c.id})">✏️</button>
+                    </td>
+                `;
+            }
+            tbody.appendChild(tr);
+        });
+
+        document.getElementById("tot-murni").innerText = formatRupiahShort(totalMurniAll);
+        document.getElementById("tot-bayar").innerText = formatRupiahShort(totalBayarAll);
+        document.getElementById("tot-laba").innerText = formatRupiahShort(totalLabaAll);
+        document.getElementById("count-lunas").innerText = `${countLunas}/${customers.length}`;
+
+        document.getElementById("rekap-loket").innerText = formatRupiah(totalLoket);
+        document.getElementById("rekap-masuk").innerText = formatRupiah(totalMasuk);
+        document.getElementById("rekap-talang").innerText = formatRupiah(totalTalangNominal);
+        document.getElementById("rekap-belum").innerText = formatRupiah(totalBelum);
+        document.getElementById("rekap-laba").innerText = formatRupiah(totalLaba);
+        document.getElementById("info-status-lunas").innerText = `${countLunas}/${customers.length} Lunas`;
+    }
+
+    function toggleBayar(id, val) {
+        const c = customers.find(item => item.id === id);
+        if (c) { 
+            c.bayar = val; 
+            if(val) c.talang = false; 
+            saveData(); 
+            renderTable(); 
+        }
+    }
+
+    function toggleTalang(id, val) {
+        const c = customers.find(item => item.id === id);
+        if (c) { 
+            c.talang = val; 
+            if(val) c.bayar = false; 
+            saveData(); 
+            renderTable(); 
+        }
+    }
+    
+    function resetBulanBaru() {
+        if (confirm("Kosongkan semua centang bayar & talang untuk bulan baru?")) {
+            customers.forEach(c => { c.bayar = false; c.talang = false; });
+            saveData(); renderTable();
+        }
+    }
+
+    // Backup Data ke File JSON
+    function backupData() {
+        const data = {
+            customers: customers,
+            bulan: document.getElementById("input-bulan").value,
+            tahun: document.getElementById("input-tahun").value
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `backup_pdam_${document.getElementById('input-bulan').value || 'data'}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    // Restore Data dari File JSON
+    function restoreData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const parsed = JSON.parse(e.target.result);
+                if (parsed.customers) {
+                    customers = parsed.customers;
+                    if (parsed.bulan) document.getElementById("input-bulan").value = parsed.bulan;
+                    if (parsed.tahun) document.getElementById("input-tahun").value = parsed.tahun;
+                    saveData();
+                    renderTable();
+                    alert("Data berhasil dipulihkan (Restore)!");
+                } else {
+                    alert("Format file cadangan tidak valid.");
+                }
+            } catch (err) {
+                alert("Gagal membaca file JSON.");
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    function copyRekapWA() {
+        const bulan = document.getElementById("input-bulan").value || "Bulan Ini";
+        const tahun = document.getElementById("input-tahun").value || "";
+        let text = `*REKAP TAGIHAN PDAM (${bulan.toUpperCase()} ${tahun})*\n==============================\n`;
+        let countLunas = 0, totalUangDiterima = 0, totalSetorLoket = 0, totalKeuntunganLaba = 0, totalTalangWA = 0;
+
+        customers.forEach((c, i) => {
+            const statusStr = c.bayar ? `✅ Lunas` : (c.talang ? `⏳ Ditalangi` : `❌ Belum`);
+            const labaRow = (c.total > 0 && c.murni > 0) ? c.total - c.murni : 0;
+            
+            text += `${i + 1}. *${c.name}* (Meter: ${c.meter || '-'})\n   Tagihan Murni: ${formatRupiah(c.murni)} | Total: *${formatRupiah(c.total)}* [${statusStr}]\n`;
+            
+            if (c.bayar) {
+                totalUangDiterima += c.total;
+                totalSetorLoket += c.murni;
+                totalKeuntunganLaba += labaRow;
+                countLunas++;
+            } else if (c.talang) {
+                totalTalangWA += c.total;
+                totalSetorLoket += c.murni;
+                totalKeuntunganLaba += labaRow;
+            }
+        });
+
+        text += `==============================\n• Total Lunas : ${countLunas}/${customers.length} Orang\n• Setor Murni ke Loket : *${formatRupiah(totalSetorLoket)}*\n• Total Ditalangi : *${formatRupiah(totalTalangWA)}*\n• Total Laba Admin : *${formatRupiah(totalKeuntunganLaba)}*\n• Uang Masuk di Tangan : *${formatRupiah(totalUangDiterima)}*`;
+
+        navigator.clipboard.writeText(text).then(() => {
+            alert("Rekap berhasil disalin untuk WhatsApp!");
+        }).catch(() => {
+            prompt("Salin teks di bawah:", text);
+        });
+    }
+
+    function copyRekapPDAM() {
+        const bulan = document.getElementById("input-bulan").value || "Bulan Ini";
+        const tahun = document.getElementById("input-tahun").value || "";
+        let text = `*DAFTAR TAGIHAN MURNI PDAM (${bulan.toUpperCase()} ${tahun})*\n==============================\n`;
+        let totalSetorAll = 0;
+
+        customers.forEach((c, i) => {
+            text += `${i + 1}. ${c.name} | Meter: ${c.meter || '-'} | Tagihan: *${formatRupiah(c.murni)}*\n`;
+            totalSetorAll += c.murni;
+        });
+
+        text += `==============================\n• Total Keseluruhan Setoran : *${formatRupiah(totalSetorAll)}*`;
+
+        navigator.clipboard.writeText(text).then(() => {
+            alert("Daftar bersih untuk petugas PDAM berhasil disalin!");
+        }).catch(() => {
+            prompt("Salin teks di bawah:", text);
+        });
+    }
+
+    loadData();
+    renderTable();
+</script>
+
+</body>
+</html>
